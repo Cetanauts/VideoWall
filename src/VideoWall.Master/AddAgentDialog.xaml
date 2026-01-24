@@ -1,0 +1,42 @@
+<Window x:Class="VideoWall.Master.AddAgentDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add Agent"
+        Height="220" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource TextBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Connect to Agent" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,16"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="100"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="IP Address" Style="{StaticResource MutedStyle}" Margin="0,0,0,4"/>
+            <TextBox x:Name="txtIpAddress" Grid.Row="1" Text="192.168.1.100" Margin="0,0,8,0"/>
+
+            <TextBlock Grid.Column="1" Text="Port" Style="{StaticResource MutedStyle}" Margin="0,0,0,4"/>
+            <TextBox x:Name="txtPort" Grid.Row="1" Grid.Column="1" Text="5100"/>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Click="Cancel_Click" Margin="0,0,8,0" Width="80"/>
+            <Button Content="Connect" Style="{StaticResource PrimaryButton}" Click="Connect_Click" Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

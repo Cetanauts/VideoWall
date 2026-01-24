@@ -1,0 +1,54 @@
+<Window x:Class="VideoWall.Master.ScreenSetDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Create Screen Set"
+        Height="280" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource TextBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="New Screen Set" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,16"/>
+
+        <!-- Name -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock Text="Name" Style="{StaticResource MutedStyle}" Margin="0,0,0,4"/>
+            <TextBox x:Name="txtName" Text="My Video Wall"/>
+        </StackPanel>
+
+        <!-- Grid size -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Margin="0,0,8,0">
+                <TextBlock Text="Columns" Style="{StaticResource MutedStyle}" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtColumns" Text="3"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                <TextBlock Text="Rows" Style="{StaticResource MutedStyle}" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtRows" Text="2"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Preview text -->
+        <TextBlock Grid.Row="3" x:Name="txtPreview" Style="{StaticResource MutedStyle}"
+                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Click="Cancel_Click" Margin="0,0,8,0" Width="80"/>
+            <Button Content="Create" Style="{StaticResource PrimaryButton}" Click="Create_Click" Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

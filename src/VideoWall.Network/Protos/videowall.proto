@@ -1,0 +1,338 @@
+syntax = "proto3";
+
+option csharp_namespace = "VideoWall.Network.Grpc";
+
+package videowall;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// ============================================================================
+// Agent Service - Runs on each display machine
+// ============================================================================
+
+service AgentService {
+  // Health and status
+  rpc Ping(google.protobuf.Empty) returns (PingResponse);
+  rpc GetStatus(google.protobuf.Empty) returns (AgentStatusResponse);
+  rpc GetHardwareInfo(google.protobuf.Empty) returns (HardwareInfoResponse);
+
+  // Playback control
+  rpc Play(PlayRequest) returns (PlayResponse);
+  rpc Pause(OutputRequest) returns (OperationResponse);
+  rpc Stop(OutputRequest) returns (OperationResponse);
+  rpc Resume(OutputRequest) returns (OperationResponse);
+  rpc Seek(SeekRequest) returns (OperationResponse);
+  rpc SetVolume(VolumeRequest) returns (OperationResponse);
+
+  // Slideshow control
+  rpc StartSlideshow(SlideshowRequest) returns (OperationResponse);
+  rpc NextSlide(OutputRequest) returns (OperationResponse);
+  rpc PreviousSlide(OutputRequest) returns (OperationResponse);
+  rpc GoToSlide(GoToSlideRequest) returns (OperationResponse);
+
+  // Synchronized playback
+  rpc PrepareSync(PrepareSyncRequest) returns (OperationResponse);
+  rpc ExecuteSync(ExecuteSyncRequest) returns (OperationResponse);
+
+  // Output management
+  rpc EnableOutput(OutputRequest) returns (OperationResponse);
+  rpc DisableOutput(OutputRequest) returns (OperationResponse);
+
+  // Diagnostics
+  rpc RunTestPattern(TestPatternRequest) returns (OperationResponse);
+  rpc GetThumbnail(OutputRequest) returns (ThumbnailResponse);
+
+  // Streaming status updates
+  rpc StreamStatus(google.protobuf.Empty) returns (stream StatusUpdate);
+}
+
+// ============================================================================
+// Master Service - Runs on master controller for discovery
+// ============================================================================
+
+service MasterService {
+  // Agent registration
+  rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc UnregisterAgent(UnregisterAgentRequest) returns (OperationResponse);
+}
+
+// ============================================================================
+// Common Messages
+// ============================================================================
+
+message PingResponse {
+  bool success = 1;
+  string agent_version = 2;
+  google.protobuf.Timestamp server_time = 3;
+}
+
+message OperationResponse {
+  bool success = 1;
+  string message = 2;
+  string error_code = 3;
+}
+
+message OutputRequest {
+  string output_id = 1;
+}
+
+// ============================================================================
+// Status Messages
+// ============================================================================
+
+message AgentStatusResponse {
+  string machine_id = 1;
+  string computer_name = 2;
+  string agent_version = 3;
+  AgentState state = 4;
+  int64 uptime_seconds = 5;
+  double cpu_usage = 6;
+  int64 available_memory_mb = 7;
+  repeated OutputStatus outputs = 8;
+}
+
+enum AgentState {
+  AGENT_STATE_UNKNOWN = 0;
+  AGENT_STATE_INITIALIZING = 1;
+  AGENT_STATE_READY = 2;
+  AGENT_STATE_BUSY = 3;
+  AGENT_STATE_ERROR = 4;
+}
+
+message OutputStatus {
+  string output_id = 1;
+  string friendly_name = 2;
+  bool is_enabled = 3;
+  bool is_connected = 4;
+  PlaybackState playback_state = 5;
+  string current_media = 6;
+  int64 position_ms = 7;
+  int64 duration_ms = 8;
+  int32 volume = 9;
+}
+
+enum PlaybackState {
+  PLAYBACK_STATE_STOPPED = 0;
+  PLAYBACK_STATE_PLAYING = 1;
+  PLAYBACK_STATE_PAUSED = 2;
+  PLAYBACK_STATE_BUFFERING = 3;
+  PLAYBACK_STATE_ERROR = 4;
+}
+
+message StatusUpdate {
+  string output_id = 1;
+  PlaybackState state = 2;
+  int64 position_ms = 3;
+  string error_message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// ============================================================================
+// Hardware Messages
+// ============================================================================
+
+message HardwareInfoResponse {
+  string machine_id = 1;
+  string computer_name = 2;
+  string os_version = 3;
+  int64 total_ram_mb = 4;
+  repeated GpuInfo gpus = 5;
+  string vlc_version = 6;
+}
+
+message GpuInfo {
+  string gpu_id = 1;
+  string name = 2;
+  string manufacturer = 3;
+  string driver_version = 4;
+  int64 video_memory_mb = 5;
+  repeated DisplayOutputInfo outputs = 6;
+}
+
+message DisplayOutputInfo {
+  string output_id = 1;
+  string device_name = 2;
+  string friendly_name = 3;
+  string output_type = 4;
+  int32 width = 5;
+  int32 height = 6;
+  int32 refresh_rate = 7;
+  bool is_primary = 8;
+  bool is_connected = 9;
+  ScreenBounds bounds = 10;
+}
+
+message ScreenBounds {
+  int32 x = 1;
+  int32 y = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+// ============================================================================
+// Playback Messages
+// ============================================================================
+
+message PlayRequest {
+  string output_id = 1;
+  string media_path = 2;
+  bool auto_play = 3;
+  int64 start_position_ms = 4;
+  int32 volume = 5;
+  bool loop = 6;
+  ScaleMode scale_mode = 7;
+}
+
+enum ScaleMode {
+  SCALE_MODE_FIT = 0;
+  SCALE_MODE_FILL = 1;
+  SCALE_MODE_STRETCH = 2;
+  SCALE_MODE_ORIGINAL = 3;
+}
+
+message PlayResponse {
+  bool success = 1;
+  string message = 2;
+  int64 duration_ms = 3;
+}
+
+message SeekRequest {
+  string output_id = 1;
+  int64 position_ms = 2;
+}
+
+message VolumeRequest {
+  string output_id = 1;
+  int32 volume = 2;
+  bool mute = 3;
+}
+
+// ============================================================================
+// Slideshow Messages
+// ============================================================================
+
+message SlideshowRequest {
+  string output_id = 1;
+  repeated SlideInfo slides = 2;
+  int32 default_duration_ms = 3;
+  TransitionType default_transition = 4;
+  int32 default_transition_duration_ms = 5;
+  bool loop = 6;
+  bool auto_advance = 7;
+}
+
+message SlideInfo {
+  string media_path = 1;
+  int32 duration_ms = 2;
+  TransitionType transition = 3;
+  int32 transition_duration_ms = 4;
+}
+
+enum TransitionType {
+  TRANSITION_CUT = 0;
+  TRANSITION_FADE = 1;
+  TRANSITION_WIPE_LEFT = 2;
+  TRANSITION_WIPE_RIGHT = 3;
+  TRANSITION_WIPE_UP = 4;
+  TRANSITION_WIPE_DOWN = 5;
+  TRANSITION_PUSH_LEFT = 6;
+  TRANSITION_PUSH_RIGHT = 7;
+  TRANSITION_PUSH_UP = 8;
+  TRANSITION_PUSH_DOWN = 9;
+  TRANSITION_ZOOM_IN = 10;
+  TRANSITION_ZOOM_OUT = 11;
+  TRANSITION_DISSOLVE = 12;
+  TRANSITION_BLUR = 13;
+}
+
+message GoToSlideRequest {
+  string output_id = 1;
+  int32 slide_index = 2;
+}
+
+// ============================================================================
+// Sync Messages
+// ============================================================================
+
+message PrepareSyncRequest {
+  string sync_group_id = 1;
+  repeated SyncOutputConfig outputs = 2;
+}
+
+message SyncOutputConfig {
+  string output_id = 1;
+  string media_path = 2;
+  int64 start_position_ms = 3;
+}
+
+message ExecuteSyncRequest {
+  string sync_group_id = 1;
+  google.protobuf.Timestamp execute_at = 2;
+}
+
+// ============================================================================
+// Diagnostics Messages
+// ============================================================================
+
+message TestPatternRequest {
+  string output_id = 1;
+  TestPatternType pattern = 2;
+  int32 duration_seconds = 3;
+}
+
+enum TestPatternType {
+  TEST_PATTERN_COLOR_BARS = 0;
+  TEST_PATTERN_GRID = 1;
+  TEST_PATTERN_SOLID_WHITE = 2;
+  TEST_PATTERN_SOLID_BLACK = 3;
+  TEST_PATTERN_SOLID_RED = 4;
+  TEST_PATTERN_SOLID_GREEN = 5;
+  TEST_PATTERN_SOLID_BLUE = 6;
+  TEST_PATTERN_OUTPUT_ID = 7;
+  TEST_PATTERN_SYNC_FLASH = 8;
+}
+
+message ThumbnailResponse {
+  bool success = 1;
+  bytes image_data = 2;
+  string content_type = 3;
+  int32 width = 4;
+  int32 height = 5;
+}
+
+// ============================================================================
+// Registration Messages
+// ============================================================================
+
+message RegisterAgentRequest {
+  string machine_id = 1;
+  string computer_name = 2;
+  string ip_address = 3;
+  int32 port = 4;
+  string agent_version = 5;
+  HardwareInfoResponse hardware = 6;
+}
+
+message RegisterAgentResponse {
+  bool success = 1;
+  string assigned_id = 2;
+  string message = 3;
+}
+
+message HeartbeatRequest {
+  string machine_id = 1;
+  AgentState state = 2;
+  double cpu_usage = 3;
+  int64 available_memory_mb = 4;
+}
+
+message HeartbeatResponse {
+  bool acknowledged = 1;
+  google.protobuf.Timestamp server_time = 2;
+}
+
+message UnregisterAgentRequest {
+  string machine_id = 1;
+}

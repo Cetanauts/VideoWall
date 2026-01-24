@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VideoWall.Agent</RootNamespace>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.59.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VideoWall.Core\VideoWall.Core.csproj" />
+    <ProjectReference Include="..\VideoWall.Hardware\VideoWall.Hardware.csproj" />
+    <ProjectReference Include="..\VideoWall.Playback\VideoWall.Playback.csproj" />
+    <ProjectReference Include="..\VideoWall.Transitions\VideoWall.Transitions.csproj" />
+    <ProjectReference Include="..\VideoWall.Network\VideoWall.Network.csproj" />
+  </ItemGroup>
+
+</Project>
