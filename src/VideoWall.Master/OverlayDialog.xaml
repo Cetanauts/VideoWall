@@ -1,0 +1,174 @@
+<Window x:Class="VideoWall.Master.OverlayDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configure Overlay"
+        Height="720" Width="500"
+        MinHeight="600" MinWidth="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource TextBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Overlay Type -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Overlay Type" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,8"/>
+            <ComboBox x:Name="cmbOverlayType" SelectionChanged="OverlayType_Changed">
+                <ComboBoxItem Content="Clock" IsSelected="True"/>
+                <ComboBoxItem Content="Date/Time"/>
+                <ComboBoxItem Content="Static Text"/>
+                <ComboBoxItem Content="News Ticker"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Position -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <TextBlock Text="Position" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,8"/>
+            <ComboBox x:Name="cmbPosition">
+                <ComboBoxItem Content="Top Left"/>
+                <ComboBoxItem Content="Top Center"/>
+                <ComboBoxItem Content="Top Right"/>
+                <ComboBoxItem Content="Bottom Left"/>
+                <ComboBoxItem Content="Bottom Center"/>
+                <ComboBoxItem Content="Bottom Right" IsSelected="True"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Common Settings -->
+        <Grid Grid.Row="2" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,8">
+                <TextBlock Text="Font Size" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtFontSize" Text="32"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Grid.Row="0" Margin="0,0,0,8">
+                <TextBlock Text="Margin (px)" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtMargin" Text="20"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="0" Grid.Row="1">
+                <TextBlock Text="Text Color" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtForeground" Text="#FFFFFFFF"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Grid.Row="1">
+                <TextBlock Text="Background" Margin="0,0,0,4"/>
+                <TextBox x:Name="txtBackground" Text="#80000000"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Type-specific panels -->
+        <Border Grid.Row="3" Style="{StaticResource PanelStyle}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <!-- Clock Settings -->
+                <StackPanel x:Name="panelClock">
+                    <TextBlock Text="Clock Settings" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,12"/>
+                    <CheckBox x:Name="chk24Hour" Content="Use 24-hour format" IsChecked="True" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="chkShowSeconds" Content="Show seconds" IsChecked="True" Margin="0,0,0,8"/>
+                    <StackPanel Margin="0,8,0,0">
+                        <TextBlock Text="Time Zone (blank = local)" Margin="0,0,0,4"/>
+                        <TextBox x:Name="txtClockTimezone" Text=""/>
+                    </StackPanel>
+                    <StackPanel Margin="0,8,0,0">
+                        <TextBlock Text="Custom Format (optional)" Margin="0,0,0,4"/>
+                        <TextBox x:Name="txtClockFormat" Text=""/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- DateTime Settings -->
+                <StackPanel x:Name="panelDateTime" Visibility="Collapsed">
+                    <TextBlock Text="Date/Time Settings" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,12"/>
+                    <StackPanel Margin="0,0,0,8">
+                        <TextBlock Text="Preset" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="cmbDateTimePreset" SelectionChanged="DateTimePreset_Changed">
+                            <ComboBoxItem Content="Custom" IsSelected="True"/>
+                            <ComboBoxItem Content="Full Date &amp; Time" Tag="dddd, MMMM d, yyyy h:mm tt"/>
+                            <ComboBoxItem Content="Short Date &amp; Time" Tag="M/d/yyyy h:mm tt"/>
+                            <ComboBoxItem Content="Day + Date/Time (2-line)" Tag="dddd\nMMM d  h:mm tt"/>
+                            <ComboBoxItem Content="Day + Date (2-line)" Tag="dddd\nMMMM d, yyyy"/>
+                            <ComboBoxItem Content="Day + Time (2-line)" Tag="dddd\nh:mm tt"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,0,8">
+                        <TextBlock Text="Format String (use \n for new line)" Margin="0,0,0,4"/>
+                        <TextBox x:Name="txtDateTimeFormat" Text="dddd, MMMM d, yyyy h:mm tt"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Time Zone (blank = local)" Margin="0,0,0,4"/>
+                        <TextBox x:Name="txtDateTimeTimezone" Text=""/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Static Text Settings -->
+                <StackPanel x:Name="panelStaticText" Visibility="Collapsed">
+                    <TextBlock Text="Static Text Settings" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,12"/>
+                    <StackPanel>
+                        <TextBlock Text="Text Content" Margin="0,0,0,4"/>
+                        <TextBox x:Name="txtStaticText" Text="" AcceptsReturn="True"
+                                 TextWrapping="Wrap" Height="120" VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- News Ticker Settings -->
+                <StackPanel x:Name="panelNewsTicker" Visibility="Collapsed">
+                    <TextBlock Text="News Ticker Settings" Style="{StaticResource SubHeaderStyle}" Margin="0,0,0,12"/>
+                    <TextBlock Text="News Sources" Margin="0,0,0,4"/>
+                    <CheckBox x:Name="chkReuters"  Content="Reuters"      Tag="https://feeds.reuters.com/reuters/topNews" Margin="0,2" IsChecked="True"/>
+                    <CheckBox x:Name="chkAPNews"   Content="AP News"      Tag="https://rsshub.app/apnews/topics/apf-topnews" Margin="0,2"/>
+                    <CheckBox x:Name="chkBBC"      Content="BBC World"    Tag="https://feeds.bbci.co.uk/news/world/rss.xml" Margin="0,2" IsChecked="True"/>
+                    <CheckBox x:Name="chkNPR"      Content="NPR"          Tag="https://feeds.npr.org/1001/rss.xml" Margin="0,2"/>
+                    <CheckBox x:Name="chkPBS"      Content="PBS NewsHour" Tag="https://www.pbs.org/newshour/feeds/rss/headlines" Margin="0,2"/>
+
+                    <TextBlock Text="Custom RSS URLs (one per line)" Margin="0,8,0,2" FontSize="11" Opacity="0.6"/>
+                    <TextBox x:Name="txtFeedUrls" AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="50" VerticalScrollBarVisibility="Auto"/>
+
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Scroll Speed (px/sec)" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtScrollSpeed" Text="100"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Refresh (minutes)" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtRefreshInterval" Text="15"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Remove" Style="{StaticResource DangerButton}"
+                    Click="Remove_Click" Margin="0,0,8,0"
+                    x:Name="btnRemove" Visibility="Collapsed"/>
+            <Button Content="Cancel" Click="Cancel_Click" Margin="0,0,8,0"/>
+            <Button Content="Apply" Style="{StaticResource PrimaryButton}" Click="Apply_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,32 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# NuGet
+packages/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temp files
+*.tmp
+*.log
+
+# libvlc binaries (too large)
+**/libvlc/
+
+# Publish output
+publish/
+
+# Misc
+nul
+start-remote.bat
+start-remote.ps1
