@@ -30,3 +30,4 @@ publish/
 nul
 start-remote.bat
 start-remote.ps1
+.claude/
