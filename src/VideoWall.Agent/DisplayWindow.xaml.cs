@@ -88,7 +88,7 @@ public partial class DisplayWindow : Window
 
     private void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
-        Console.WriteLine($"[DisplayWindow] Window Loaded - OutputId: {_outputId}, Size: {ActualWidth}x{ActualHeight}, Left={Left}, Top={Top}");
+        Log($" Window Loaded - OutputId: {_outputId}, Size: {ActualWidth}x{ActualHeight}, Left={Left}, Top={Top}");
 
         // Assign MediaPlayer to VideoView - this MUST happen after the window is loaded
         videoView.MediaPlayer = _mediaPlayer;
@@ -109,7 +109,7 @@ public partial class DisplayWindow : Window
         };
         timer.Start();
 
-        Console.WriteLine($"[DisplayWindow] VideoView size: {videoView.ActualWidth}x{videoView.ActualHeight}, Visibility={videoView.Visibility}");
+        Log($" VideoView size: {videoView.ActualWidth}x{videoView.ActualHeight}, Visibility={videoView.Visibility}");
     }
 
     /// <summary>
@@ -126,13 +126,15 @@ public partial class DisplayWindow : Window
     /// <summary>
     /// Play a video file
     /// </summary>
+    private void Log(string message) => Services.DisplayWindowManager.Log("DisplayWindow", message);
+
     public async Task PlayVideoAsync(string mediaPath, bool autoPlay = true, long startPositionMs = 0)
     {
-        Console.WriteLine($"[DisplayWindow] PlayVideoAsync called: {mediaPath}");
+        Log($"PlayVideoAsync called: path={mediaPath}");
 
         // Ensure window is loaded and VideoView.MediaPlayer is set
         await EnsureLoadedAsync();
-        Console.WriteLine($"[DisplayWindow] Window loaded, IsVisible={IsVisible}");
+        Log($"Window loaded, IsVisible={IsVisible}");
 
         // Make sure window is visible and active
         await Dispatcher.InvokeAsync(() =>
@@ -157,13 +159,13 @@ public partial class DisplayWindow : Window
                 resolvedPath = System.IO.Path.GetFullPath(mediaPath);
                 if (!System.IO.File.Exists(resolvedPath))
                 {
-                    Console.WriteLine($"[DisplayWindow] ERROR: File not found: {resolvedPath}");
+                    Log($" ERROR: File not found: {resolvedPath}");
                     await Dispatcher.InvokeAsync(() => ShowDebugOverlay($"ERROR: File not found\n{resolvedPath}"));
                     return;
                 }
             }
 
-            Console.WriteLine($"[DisplayWindow] Resolved path: {resolvedPath}");
+            Log($" Resolved path: {resolvedPath}");
 
             bool mediaParsed = false;
             await Task.Run(async () =>
@@ -175,23 +177,23 @@ public partial class DisplayWindow : Window
                 {
                     // For UNC paths, pass the raw path to LibVLC instead of converting to file:// URI.
                     // LibVLC handles UNC paths better as native paths than as URI-encoded file:// URIs.
-                    Console.WriteLine($"[DisplayWindow] Creating media from UNC/URL path: {mediaPath}");
+                    Log($" Creating media from UNC/URL path: {mediaPath}");
                     _currentMedia = new Media(_libVLC, mediaPath, FromType.FromPath);
                 }
                 else
                 {
                     mediaUri = new Uri(resolvedPath);
-                    Console.WriteLine($"[DisplayWindow] Creating media from URI: {mediaUri}");
+                    Log($" Creating media from URI: {mediaUri}");
                     _currentMedia = new Media(_libVLC, mediaUri);
                 }
 
                 // Parse media to verify it can be loaded
                 var parseResult = await _currentMedia.Parse(MediaParseOptions.ParseLocal | MediaParseOptions.ParseNetwork);
-                Console.WriteLine($"[DisplayWindow] Media parse result: {parseResult}, Duration: {_currentMedia.Duration}ms");
+                Log($" Media parse result: {parseResult}, Duration: {_currentMedia.Duration}ms");
 
                 if (parseResult != MediaParsedStatus.Done)
                 {
-                    Console.WriteLine($"[DisplayWindow] ERROR: Media parse failed with status {parseResult}");
+                    Log($" ERROR: Media parse failed with status {parseResult}");
                     mediaParsed = false;
                     return;
                 }
@@ -202,30 +204,30 @@ public partial class DisplayWindow : Window
 
             if (!mediaParsed)
             {
-                Console.WriteLine($"[DisplayWindow] Media parse failed, not switching to video mode");
+                Log($" Media parse failed, not switching to video mode");
                 await Dispatcher.InvokeAsync(() => ShowDebugOverlay($"ERROR: Failed to load media\n{System.IO.Path.GetFileName(mediaPath)}"));
                 return;
             }
 
             await Dispatcher.InvokeAsync(() =>
             {
-                Console.WriteLine($"[DisplayWindow] Setting up VideoView, MediaPlayer assigned: {videoView.MediaPlayer != null}");
+                Log($" Setting up VideoView, MediaPlayer assigned: {videoView.MediaPlayer != null}");
 
                 // Ensure VideoView has MediaPlayer assigned
                 if (videoView.MediaPlayer == null)
                 {
-                    Console.WriteLine($"[DisplayWindow] Assigning MediaPlayer to VideoView");
+                    Log($" Assigning MediaPlayer to VideoView");
                     videoView.MediaPlayer = _mediaPlayer;
                 }
 
                 ShowContent(ContentType.Video);
                 _currentContentType = ContentType.Video;
 
-                Console.WriteLine($"[DisplayWindow] VideoView Visibility: {videoView.Visibility}, ActualWidth: {videoView.ActualWidth}, ActualHeight: {videoView.ActualHeight}");
+                Log($" VideoView Visibility: {videoView.Visibility}, ActualWidth: {videoView.ActualWidth}, ActualHeight: {videoView.ActualHeight}");
 
                 if (autoPlay)
                 {
-                    Console.WriteLine($"[DisplayWindow] Starting playback");
+                    Log($" Starting playback");
                     _mediaPlayer.Play();
                 }
 
@@ -242,7 +244,7 @@ public partial class DisplayWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DisplayWindow] ERROR in PlayVideoAsync: {ex.Message}");
+            Log($" ERROR in PlayVideoAsync: {ex.Message}");
             await Dispatcher.InvokeAsync(() => ShowDebugOverlay($"ERROR: {ex.Message}"));
         }
     }
@@ -328,7 +330,7 @@ public partial class DisplayWindow : Window
     /// </summary>
     public async Task ShowImageAsync(string imagePath)
     {
-        Console.WriteLine($"[DisplayWindow] ShowImageAsync called: {imagePath}");
+        Log($" ShowImageAsync called: {imagePath}");
 
         await EnsureLoadedAsync();
 
@@ -358,13 +360,13 @@ public partial class DisplayWindow : Window
             {
                 if (!System.IO.File.Exists(absolutePath))
                 {
-                    Console.WriteLine($"[DisplayWindow] ERROR: Image file not found: {absolutePath}");
+                    Log($" ERROR: Image file not found: {absolutePath}");
                     await Dispatcher.InvokeAsync(() => ShowDebugOverlay($"ERROR: Image not found\n{absolutePath}"));
                     return;
                 }
             }
 
-            Console.WriteLine($"[DisplayWindow] Loading image: {absolutePath}");
+            Log($" Loading image: {absolutePath}");
 
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -373,7 +375,7 @@ public partial class DisplayWindow : Window
             bitmap.EndInit();
             bitmap.Freeze();
 
-            Console.WriteLine($"[DisplayWindow] Image loaded: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
+            Log($" Image loaded: {bitmap.PixelWidth}x{bitmap.PixelHeight}");
 
             await Dispatcher.InvokeAsync(() =>
             {
@@ -381,7 +383,7 @@ public partial class DisplayWindow : Window
                 imageDisplay.Visibility = Visibility.Visible;
                 ShowContent(ContentType.Image);
                 _currentContentType = ContentType.Image;
-                Console.WriteLine($"[DisplayWindow] Image displayed, imageDisplay.ActualWidth={imageDisplay.ActualWidth}, ActualHeight={imageDisplay.ActualHeight}");
+                Log($" Image displayed, imageDisplay.ActualWidth={imageDisplay.ActualWidth}, ActualHeight={imageDisplay.ActualHeight}");
 
                 // Hide debug after a delay
                 var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
@@ -391,7 +393,7 @@ public partial class DisplayWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DisplayWindow] ERROR loading image '{imagePath}': {ex.Message}");
+            Log($" ERROR loading image '{imagePath}': {ex.Message}");
             await Dispatcher.InvokeAsync(() => ShowDebugOverlay($"ERROR: {ex.Message}"));
         }
     }
@@ -431,7 +433,7 @@ public partial class DisplayWindow : Window
                 absolutePath = System.IO.Path.GetFullPath(imagePath);
             }
 
-            Console.WriteLine($"Loading image with transition: {absolutePath}");
+            Log($"Loading image with transition: {absolutePath}");
 
             // Load new image
             var bitmap = new BitmapImage();
@@ -469,12 +471,12 @@ public partial class DisplayWindow : Window
 
                 storyboard.Begin(this);
                 _currentContentType = ContentType.Image;
-                Console.WriteLine($"Image with transition displayed successfully: {imagePath}");
+                Log($"Image with transition displayed successfully: {imagePath}");
             });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to show image with transition '{imagePath}': {ex.Message}");
+            Log($"FAILED to show image with transition '{imagePath}': {ex.Message}");
         }
     }
 
@@ -625,12 +627,12 @@ public partial class DisplayWindow : Window
         if (_currentContentType == ContentType.Video)
         {
             videoOverlayContainer.Children.Add(element);
-            Console.WriteLine($"[DisplayWindow] Added overlay '{overlayId}' to VideoView foreground");
+            Log($" Added overlay '{overlayId}' to VideoView foreground");
         }
         else
         {
             overlayContainer.Children.Add(element);
-            Console.WriteLine($"[DisplayWindow] Added overlay '{overlayId}' to main overlay container");
+            Log($" Added overlay '{overlayId}' to main overlay container");
         }
     }
 
@@ -670,7 +672,7 @@ public partial class DisplayWindow : Window
 
     private void ShowContent(ContentType type)
     {
-        Console.WriteLine($"[DisplayWindow] ShowContent called with type: {type}");
+        Log($" ShowContent called with type: {type}");
 
         // Set visibility for all content types
         videoView.Visibility = type == ContentType.Video ? Visibility.Visible : Visibility.Collapsed;
@@ -678,7 +680,7 @@ public partial class DisplayWindow : Window
         slideshowContainer.Visibility = type == ContentType.Slideshow ? Visibility.Visible : Visibility.Collapsed;
         testPatternContainer.Visibility = type == ContentType.TestPattern ? Visibility.Visible : Visibility.Collapsed;
 
-        Console.WriteLine($"[DisplayWindow] videoView.Visibility={videoView.Visibility}, imageDisplay.Visibility={imageDisplay.Visibility}");
+        Log($" videoView.Visibility={videoView.Visibility}, imageDisplay.Visibility={imageDisplay.Visibility}");
 
         // Move overlays into/out of VideoView for airspace compatibility.
         // LibVLCSharp.WPF renders video in a native window behind WPF, so overlays
@@ -730,7 +732,7 @@ public partial class DisplayWindow : Window
         {
             videoOverlayContainer.Children.Add(child);
         }
-        Console.WriteLine($"[DisplayWindow] Moved {children.Count} overlay(s) into VideoView foreground");
+        Log($" Moved {children.Count} overlay(s) into VideoView foreground");
     }
 
     /// <summary>
@@ -747,7 +749,7 @@ public partial class DisplayWindow : Window
         {
             overlayContainer.Children.Add(child);
         }
-        Console.WriteLine($"[DisplayWindow] Moved {children.Count} overlay(s) back to main container");
+        Log($" Moved {children.Count} overlay(s) back to main container");
     }
 
     /// <summary>

@@ -23,7 +23,8 @@ public class DisplayWindowManager : IDisposable
     private readonly Dictionary<string, SlideshowState> _slideshows = new();
     private readonly Dispatcher _dispatcher;
     private readonly object _lock = new();
-    private readonly string _logFile;
+    private static string _logFile = string.Empty;
+    private static StreamWriter? _logWriter;
     private bool _disposed;
     private double _dpiScaleX = 1.0;
     private double _dpiScaleY = 1.0;
@@ -52,23 +53,33 @@ public class DisplayWindowManager : IDisposable
     }
 
     /// <summary>
-    /// Log to both console and file for diagnostics
+    /// Log to both console and file for diagnostics.
+    /// Public and static so DisplayWindow can also write to the same log.
     /// </summary>
-    private void Log(string message)
+    public static void Log(string tag, string message)
     {
-        var line = $"[{DateTime.Now:HH:mm:ss.fff}] [DisplayWindowManager] {message}";
+        var line = $"[{DateTime.Now:HH:mm:ss.fff}] [{tag}] {message}";
         Console.WriteLine(line);
-        try { File.AppendAllText(_logFile, line + Environment.NewLine); } catch { }
+        try { _logWriter?.WriteLine(line); _logWriter?.Flush(); } catch { }
     }
+
+    private void Log(string message) => Log("DisplayWindowManager", message);
 
     public DisplayWindowManager(DisplayDetector displayDetector, Dispatcher dispatcher)
     {
         _displayDetector = displayDetector;
         _dispatcher = dispatcher;
 
-        // Set up log file next to the exe
-        _logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "videowall-agent.log");
-        try { File.WriteAllText(_logFile, $"=== VideoWall Agent Log Started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}"); } catch { }
+        // Use timestamped log file name to bypass SMB caching on remote reads
+        _logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            $"videowall-agent-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+        try
+        {
+            _logWriter = new StreamWriter(_logFile, append: false) { AutoFlush = true };
+            _logWriter.WriteLine($"=== VideoWall Agent Log Started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+            _logWriter.WriteLine($"=== Log file: {_logFile} ===");
+        }
+        catch { }
 
         // Initialize LibVLC
         LibVLCSharp.Shared.Core.Initialize();
@@ -775,6 +786,7 @@ public class DisplayWindowManager : IDisposable
 
         CloseAllWindows();
         _libVLC.Dispose();
+        try { _logWriter?.Dispose(); _logWriter = null; } catch { }
     }
 }
 

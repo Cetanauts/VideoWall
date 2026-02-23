@@ -171,7 +171,7 @@ public class AgentGrpcService : AgentService.AgentServiceBase
     public override async Task<PlayResponse> Play(PlayRequest request, ServerCallContext context)
     {
         UpdateLastCommandTime();
-        Console.WriteLine($"[AgentGrpcService] Play received: output={request.OutputId}, media={request.MediaPath}, autoPlay={request.AutoPlay}");
+        DisplayWindowManager.Log("AgentGrpcService", $"Play received: output={request.OutputId}, media={request.MediaPath}, autoPlay={request.AutoPlay}, fileExists={System.IO.File.Exists(request.MediaPath)}");
         try
         {
             bool success = await _displayManager.PlayVideoAsync(
@@ -183,7 +183,7 @@ public class AgentGrpcService : AgentService.AgentServiceBase
                 request.Loop
             );
 
-            Console.WriteLine($"[AgentGrpcService] Play result: success={success}");
+            DisplayWindowManager.Log("AgentGrpcService", $"Play result: success={success}");
             return new PlayResponse
             {
                 Success = success,
@@ -193,7 +193,7 @@ public class AgentGrpcService : AgentService.AgentServiceBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[AgentGrpcService] Play error: {ex.Message}");
+            DisplayWindowManager.Log("AgentGrpcService", $"Play error: {ex.Message}");
             return new PlayResponse
             {
                 Success = false,
@@ -270,7 +270,12 @@ public class AgentGrpcService : AgentService.AgentServiceBase
     public override Task<OperationResponse> StartSlideshow(SlideshowRequest request, ServerCallContext context)
     {
         UpdateLastCommandTime();
-        Console.WriteLine($"[AgentGrpcService] StartSlideshow received: output={request.OutputId}, slides={request.Slides.Count}, duration={request.DefaultDurationMs}ms");
+        DisplayWindowManager.Log("AgentGrpcService", $"StartSlideshow received: output={request.OutputId}, slides={request.Slides.Count}, duration={request.DefaultDurationMs}ms");
+        if (request.Slides.Count > 0)
+        {
+            var firstPath = request.Slides[0].MediaPath;
+            DisplayWindowManager.Log("AgentGrpcService", $"  First slide path: {firstPath}, fileExists={System.IO.File.Exists(firstPath)}");
+        }
         try
         {
             if (request.Slides.Count == 0)

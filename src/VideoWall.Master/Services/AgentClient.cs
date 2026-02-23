@@ -87,9 +87,12 @@ public class AgentClient : IDisposable
     }
 
     /// <summary>
-    /// Converts a local file path to a UNC path via admin share when the agent is remote.
-    /// e.g. D:\Media\video.mp4 → \\MASTERHOSTNAME\D$\Media\video.mp4
-    /// Paths that are already UNC or URLs are returned as-is.
+    /// Resolves media paths for remote agents.
+    /// UNC paths and URLs are passed through as-is.
+    /// Local drive paths (e.g. K:\AIArt\photo.jpg) are returned unchanged — the user
+    /// must ensure that media is on a network-accessible share (UNC path) when targeting
+    /// remote agents. Admin shares (C$, D$) are NOT used because they require admin
+    /// credentials that remote agents typically don't have.
     /// </summary>
     private string ResolveMediaPath(string mediaPath)
     {
@@ -101,20 +104,11 @@ public class AgentClient : IDisposable
         if (!IsRemoteAgent())
             return mediaPath;
 
-        // Resolve to full path on the Master machine
-        var fullPath = Path.GetFullPath(mediaPath);
-
-        // Convert drive letter path to UNC admin share
-        // C:\folder\file.mp4 → \\HOSTNAME\C$\folder\file.mp4
-        if (fullPath.Length >= 2 && fullPath[1] == ':')
-        {
-            var driveLetter = fullPath[0];
-            var remainingPath = fullPath.Substring(2); // includes leading backslash
-            var uncPath = $"\\\\{Environment.MachineName}\\{driveLetter}${remainingPath}";
-            System.Diagnostics.Debug.WriteLine($"[AgentClient] UNC path conversion for remote agent {IpAddress}: {mediaPath} → {uncPath}");
-            return uncPath;
-        }
-
+        // Remote agent with a local drive path — return as-is.
+        // The agent will attempt to access it and report an error if inaccessible.
+        System.Diagnostics.Debug.WriteLine(
+            $"[AgentClient] WARNING: Local path '{mediaPath}' sent to remote agent {IpAddress}. " +
+            $"Use a UNC path (\\\\server\\share\\...) for remote agents.");
         return mediaPath;
     }
 
